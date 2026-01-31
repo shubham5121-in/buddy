@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buddy - 2026 Exam Prep</title>
+    <style>
+        :root { --primary: #4f46e5; --bg: #f3f4f6; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; width: 100%; max-width: 500px; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .screen { display: none; }
+        .active { display: block; }
+        h1 { color: var(--primary); text-align: center; margin-bottom: 5px; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #94a3b8; }
+        .online { background: #22c55e; }
+        .offline { background: #ef4444; }
+        input, select { width: 100%; padding: 12px; border: 1.5px solid #d1d5db; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; transition: 0.3s; margin-top: 10px; }
+        .btn-go { background: var(--primary); color: white; }
+        .btn-mic { background: #dc2626; color: white; }
+        .display-box { background: #eef2ff; padding: 20px; border-radius: 15px; border-left: 4px solid var(--primary); margin: 20px 0; font-size: 1.1rem; line-height: 1.5; }
+        #transcript { border: 2px dashed #94a3b8; padding: 10px; border-radius: 10px; color: #4b5563; min-height: 40px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>Buddy 🐾 <span id="buddy-status" class="status-dot"></span></h1>
+    <p style="text-align:center; font-size: 0.8rem; color: #6b7280;">Project: 714283416695 Linked</p>
+
+    <div id="setup" class="screen active">
+        <label>Class</label>
+        <select id="class"><script>for(let i=1; i<=12; i++) document.write(`<option value="${i}">Class ${i}</option>`)</script></select>
+        <label>Subject</label>
+        <input type="text" id="subject" placeholder="e.g. Science">
+        <label>Chapter</label>
+        <input type="text" id="chapter" placeholder="e.g. Atoms">
+        <button class="btn btn-go" onclick="startSession()">Start Studying</button>
+    </div>
+
+    <div id="quiz" class="screen">
+        <div class="display-box" id="question-text">Connecting to Buddy...</div>
+        <div id="transcript">Click mic to start answering...</div>
+        <button id="micBtn" class="btn btn-mic" onclick="toggleMic()">🎤 Start Answering</button>
+        <p id="hint" style="text-align:center; font-size: 0.7rem; color: #9ca3af; margin-top:10px;">Buddy shows your voice transcript above.</p>
+    </div>
+
+    <div id="result" class="screen">
+        <h2 id="score" style="text-align:center; font-size: 3rem; color: #16a34a; margin: 10px 0;">--/10</h2>
+        <div id="feedback" style="background:#f0fdf4; padding: 15px; border-radius: 12px; font-size: 0.9rem;"></div>
+        <button class="btn btn-go" onclick="startSession()">Next Question</button>
+        <button class="btn" style="background:#e5e7eb" onclick="location.reload()">Change Topic</button>
+    </div>
+</div>
+
+<script type="module">
+    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+    // --- YOUR DETAILS ---
+    const API_KEY = "AIzaSyAc8EZzmlWl6kRtTPsMQ9ROzWwqKOKIrD8"; 
+    const genAI = new GoogleGenerativeAI(API_KEY);
+    
+    // AUTO-RESOLVE 404: Tries Gemini 3 first, then Gemini 2.5
+    let model;
+    async function getStableModel() {
+        try {
+            model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+            await model.generateContent("ping");
+            document.getElementById('buddy-status').classList.add('online');
+        } catch(e) {
+            model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+            document.getElementById('buddy-status').classList.add('online');
+        }
+    }
+    getStableModel();
+
+    let currentQ = "";
+    let rec;
+    let listening = false;
+
+    window.startSession = async () => {
+        const c = document.getElementById('class').value;
+        const s = document.getElementById('subject').value;
+        const ch = document.getElementById('chapter').value;
+
+        switchScreen('quiz');
+        document.getElementById('question-text').innerText = "Buddy is thinking of a question...";
+
+        const prompt = `You are Buddy, a tutor for Class ${c}. Ask one specific exam question on ${s}: ${ch}. Only output the question.`;
+        
+        try {
+            const res = await model.generateContent(prompt);
+            currentQ = res.response.text();
+            document.getElementById('question-text').innerText = currentQ;
+        } catch(e) {
+            document.getElementById('question-text').innerText = "Connection lost. Please refresh.";
+            document.getElementById('buddy-status').classList.add('offline');
+        }
+    };
+
+    window.toggleMic = () => {
+        if (listening) { rec.stop(); return; }
+        
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        rec = new SR();
+        rec.continuous = true;
+        rec.interimResults = true;
+
+        rec.onstart = () => {
+            listening = true;
+            document.getElementById('micBtn').innerText = "🛑 Submit Answer";
+            document.getElementById('hint').innerText = "Buddy is listening carefully...";
+        };
+
+        rec.onresult = (e) => {
+            let t = "";
+            for (let i = e.resultIndex; i < e.results.length; i++) { t += e.results[i][0].transcript; }
+            document.getElementById('transcript').innerText = t;
+        };
+
+        rec.onend = () => {
+            listening = false;
+            document.getElementById('micBtn').innerText = "🎤 Start Answering";
+            evaluate(document.getElementById('transcript').innerText);
+        };
+        rec.start();
+    };
+
+    async function evaluate(ans) {
+        document.getElementById('hint').innerText = "Buddy is grading your exam answer...";
+        const prompt = `Question: ${currentQ}. Student Answer: "${ans}". 
+        Score out of 10. List: 1. Correct points. 2. Missing points (Gaps). 3. One tip to remember next time.`;
+
+        try {
+            const res = await model.generateContent(prompt);
+            const fb = res.response.text();
+            document.getElementById('score').innerText = (fb.match(/\d+\/10/) || ["7/10"])[0];
+            document.getElementById('feedback').innerText = fb;
+            switchScreen('result');
+        } catch(e) { alert("Error analyzing answer. Try again."); }
+    }
+
+    function switchScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+</script>
+</body>
+</html>
