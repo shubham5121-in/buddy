@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shri Balaji Enterprise</title>
+    <link rel="icon" type="image/png" href="360_F_204812227_fVnI2OTNSY7FYF5ZaFU5kuZjNst0kpBF-removebg-preview.png">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+    <!-- SheetJS for Excel Import -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<body class="not-logged-in">
+    <!-- Authentication Overlay -->
+    <div id="auth-overlay" class="auth-overlay">
+        <div class="auth-card">
+            <div class="brand"
+                style="flex-direction:column; align-items:center; border:none; margin-bottom:1.5rem; text-align:center;">
+                <img src="360_F_204812227_fVnI2OTNSY7FYF5ZaFU5kuZjNst0kpBF-removebg-preview.png" alt="SBE Logo"
+                    style="height: 120px; margin-bottom: 0.75rem; margin-right:0;">
+                <div
+                    style="color:var(--primary-color); text-transform: uppercase; font-weight: 800; letter-spacing: 0.1em;">
+                    shri balaji enterprises</div>
+            </div>
+            <h2>WELCOME</h2>
+            <p>Please log in to manage your data</p>
+
+            <div id="auth-error" class="auth-error"></div>
+
+            <form id="login-form">
+                <div class="form-group" style="text-align:left;">
+                    <label
+                        style="font-size:0.85rem; font-weight:600; color:var(--text-secondary); margin-bottom:0.5rem; display:block;">Email
+                        Address</label>
+                    <input type="email" id="login-email" class="form-control" placeholder="admin@sbe.com">
+                </div>
+                <div class="form-group" style="text-align:left; margin-top:1rem;">
+                    <label
+                        style="font-size:0.85rem; font-weight:600; color:var(--text-secondary); margin-bottom:0.5rem; display:block;">Password</label>
+                    <input type="password" id="login-password" class="form-control" placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary"
+                    style="width:100%; margin-top:2rem; justify-content:center;">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+
+            <div style="margin: 1.5rem 0; display: flex; align-items: center; gap: 1rem;">
+                <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+                <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">OR</span>
+                <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+            </div>
+
+            <button id="google-login-btn" class="btn"
+                style="width:100%; justify-content:center; background:white; color:#1e293b; border:1px solid #e2e8f0; box-shadow:0 1px 3px 0 rgb(0 0 0 / 0.1);">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"
+                    style="width:18px; margin-right:10px;">
+                Sign in with Google
+            </button>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="brand">
+            <img src="360_F_204812227_fVnI2OTNSY7FYF5ZaFU5kuZjNst0kpBF-removebg-preview.png" alt="SBE Logo"
+                style="border-radius: 4px;">
+            <div><b>SBE</b></div>
+        </div>
+
+        <ul class="nav-links">
+            <li class="nav-item active" data-view="entry">
+                <i class="fas fa-edit"></i>
+                <span>Daily Entry</span>
+            </li>
+            <li class="nav-item" data-view="exec-files">
+                <i class="fas fa-folder-open"></i>
+                <span>Executive All Files</span>
+            </li>
+            <li class="nav-item" data-view="dashboard">
+                <i class="fas fa-chart-line"></i>
+                <span>Owner Dashboard</span>
+            </li>
+            <li class="nav-item" data-view="settings" id="settings-tab" style="display:none;">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </li>
+        </ul>
+
+
+
+        <div class="logout-container">
+            <div class="nav-item logout-btn" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </div>
+        </div>
+
+        <div style="font-size:0.7rem; opacity:0.5; margin-top:1rem; text-align:center;">
+            &copy; 2026 SBE Systems
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <div class="page-title" id="page-title">Dashboard</div>
+            <div class="user-profile" style="display:flex; align-items:center; gap:0.75rem;">
+                <div style="text-align:right;">
+                    <div id="user-display-name" style="font-weight:600; font-size:0.9rem;">User</div>
+                    <div id="user-display-role" style="font-size:0.75rem; color:var(--text-secondary);">Role</div>
+                </div>
+                <button onclick="debugAppStatus()" id="admin-debug-btn"
+                    style="display:none; background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.1rem; padding: 5px;"
+                    title="System Check">
+                    <i class="fas fa-stethoscope"></i>
+                </button>
+                <div id="user-display-icon"
+                    style="width:40px; height:40px; background:linear-gradient(135deg, var(--accent-color), var(--accent-hover)); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:1rem; box-shadow:var(--shadow-md);">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Content Injected Here -->
+        <div id="content-area"></div>
+    </div>
+
+    <!-- Application Logic -->
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>
