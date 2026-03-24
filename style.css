@@ -693,32 +693,72 @@ tr.row-underwriting:hover {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+    body {
+        flex-direction: column;
+    }
+
     .sidebar {
         width: 100%;
         height: auto;
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        padding: 1rem 1.5rem;
+        padding: 0.75rem 1rem;
     }
 
     .brand {
         margin-bottom: 0;
-        font-size: 1.25rem;
+        font-size: 1.2rem;
         border: none;
         padding: 0;
     }
 
+    .brand img {
+        height: 36px;
+    }
+    
+    .brand b {
+        font-size: 1.5rem;
+    }
+
     .nav-links {
         flex-direction: row;
+        gap: 0.25rem;
+        justify-content: center;
+        flex: 1;
+        margin: 0 1rem;
+    }
+
+    .nav-item {
+        padding: 0.5rem 0.75rem;
     }
 
     .nav-item span {
         display: none;
     }
 
+    .logout-container {
+        padding-top: 0;
+        margin-top: 0;
+        border-top: none;
+    }
+
+    .footer-text {
+        display: none;
+    }
+
     .main-content {
-        padding: 1.5rem;
+        padding: 1rem;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .user-profile {
+        justify-content: space-between;
     }
 
     .form-row {
@@ -728,6 +768,26 @@ tr.row-underwriting:hover {
     th,
     td {
         padding: 0.75rem 1rem;
+    }
+    
+    .controls-bar {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    
+    .controls-bar > div {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    
+    #search-input {
+        max-width: 100% !important;
+    }
+    
+    .auth-card {
+        padding: 1.5rem;
+        margin: 1rem;
+        width: auto;
     }
 }
 
